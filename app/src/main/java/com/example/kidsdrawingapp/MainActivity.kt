@@ -1,12 +1,16 @@
 package com.example.kidsdrawingapp
 
+import android.Manifest
 import android.app.Dialog
+import android.content.pm.PackageManager
 import android.media.Image
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageButton
+import android.widget.Toast
 import androidx.appcompat.widget.AppCompatImageButton
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.get
 import com.example.kidsdrawingapp.databinding.ActivityMainBinding
@@ -32,6 +36,14 @@ class MainActivity : AppCompatActivity() {
 
         binding.ibBrush.setOnClickListener() {
             showBrushChooserDialog()
+        }
+
+        binding.ibGallery.setOnClickListener() {
+            if(isReadStorageAllowed()) {
+                //run our code to get the image form gallery
+            } else {
+              requestStoragePermission()
+            }
         }
 
     }
@@ -73,9 +85,38 @@ class MainActivity : AppCompatActivity() {
             )
             mImageButtonCurrentPaint = view
         }
-
     }
 
+    private fun requestStoragePermission(){
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                        arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE).toString())) {
+            Toast.makeText(this, "Need permission to add a background", Toast.LENGTH_SHORT).show()
+        }
+        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE), STORAGE_PERMISSION_CODE)
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if(requestCode == STORAGE_PERMISSION_CODE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Permission granted", Toast.LENGTH_LONG).show()
+            } else {
+                Toast.makeText(this, "Permission denied, required to read the storage files", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun isReadStorageAllowed():Boolean {
+        val result = ContextCompat.checkSelfPermission(this,Manifest.permission.READ_EXTERNAL_STORAGE)
+
+        return result == PackageManager.PERMISSION_GRANTED
+    }
+
+    companion object{
+        private const val STORAGE_PERMISSION_CODE = 1
+    }
 
 }
 
